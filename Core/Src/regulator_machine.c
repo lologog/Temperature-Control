@@ -2,7 +2,7 @@
  * regulator_machine.c
  *
  *  Created on: Nov 30, 2024
- *      Author: admin
+ *      Author: Krzysztof Tomicki
  */
 
 #include "regulator_machine.h"
@@ -12,7 +12,7 @@ static RegualatorMachineState currentState = INITIAL;
 
 void RegulatorMachine_Init(void)
 {
-
+	lcd_init();
 }
 
 void RegulatorMachine_Run(void)

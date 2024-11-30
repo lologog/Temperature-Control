@@ -9,6 +9,7 @@
 #define REGULATOR_MACHINE_H
 
 //here are gonna be all includes
+#include "i2c-lcd.h"
 
 //states of the machine
 typedef enum{
