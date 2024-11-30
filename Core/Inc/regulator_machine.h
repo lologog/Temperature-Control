@@ -10,6 +10,7 @@
 
 //here are gonna be all includes
 #include "i2c-lcd.h"
+#include "BMPXX80.h"
 
 //states of the machine
 typedef enum{
