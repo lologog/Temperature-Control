@@ -10,12 +10,11 @@
 //global state of the machine
 static RegualatorMachineState currentState = INITIAL;
 
-char pressedKey;
-
 void RegulatorMachine_Init(void)
 {
 	lcd_init();
 	BMP280_Init(&hi2c2, BMP280_TEMPERATURE_16BIT, BMP280_STANDARD, BMP280_FORCEDMODE);
+	Encoder_Init();
 }
 
 void RegulatorMachine_Run(void)

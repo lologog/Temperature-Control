@@ -12,6 +12,7 @@
 #include "i2c-lcd.h"
 #include "BMPXX80.h"
 #include "keyboard.h"
+#include "encoder.h"
 
 //states of the machine
 typedef enum{
