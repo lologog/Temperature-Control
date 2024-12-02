@@ -382,11 +382,41 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, ROW4_Pin|ROW3_Pin|ROW2_Pin|ROW1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, ROW4_Pin|ROW3_Pin|ROW2_Pin|ROW1_Pin
+                          |FAN_Pin|HEAT_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, BUZZER_Pin|HEATING_LED_Pin|REGULATION_LED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : ENC3_BUTTON_Pin ENC1_BUTTON_Pin */
+  GPIO_InitStruct.Pin = ENC3_BUTTON_Pin|ENC1_BUTTON_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : ENC2_BUTTON_Pin */
+  GPIO_InitStruct.Pin = ENC2_BUTTON_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(ENC2_BUTTON_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : RESET_Pin */
+  GPIO_InitStruct.Pin = RESET_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(RESET_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : START_STOP_Pin */
+  GPIO_InitStruct.Pin = START_STOP_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(START_STOP_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : COL1_Pin COL2_Pin COL3_Pin */
   GPIO_InitStruct.Pin = COL1_Pin|COL2_Pin|COL3_Pin;
@@ -394,12 +424,28 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ROW4_Pin ROW3_Pin ROW2_Pin ROW1_Pin */
-  GPIO_InitStruct.Pin = ROW4_Pin|ROW3_Pin|ROW2_Pin|ROW1_Pin;
+  /*Configure GPIO pins : ROW4_Pin ROW3_Pin ROW2_Pin ROW1_Pin
+                           FAN_Pin HEAT_Pin */
+  GPIO_InitStruct.Pin = ROW4_Pin|ROW3_Pin|ROW2_Pin|ROW1_Pin
+                          |FAN_Pin|HEAT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : BUZZER_Pin HEATING_LED_Pin REGULATION_LED_Pin */
+  GPIO_InitStruct.Pin = BUZZER_Pin|HEATING_LED_Pin|REGULATION_LED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure peripheral I/O remapping */
+  __HAL_AFIO_REMAP_PD01_ENABLE();
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

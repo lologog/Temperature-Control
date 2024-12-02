@@ -57,6 +57,17 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define ENC3_BUTTON_Pin GPIO_PIN_14
+#define ENC3_BUTTON_GPIO_Port GPIOC
+#define ENC1_BUTTON_Pin GPIO_PIN_15
+#define ENC1_BUTTON_GPIO_Port GPIOC
+#define ENC2_BUTTON_Pin GPIO_PIN_0
+#define ENC2_BUTTON_GPIO_Port GPIOD
+#define RESET_Pin GPIO_PIN_4
+#define RESET_GPIO_Port GPIOA
+#define RESET_EXTI_IRQn EXTI4_IRQn
+#define START_STOP_Pin GPIO_PIN_5
+#define START_STOP_GPIO_Port GPIOA
 #define COL1_Pin GPIO_PIN_0
 #define COL1_GPIO_Port GPIOB
 #define COL2_Pin GPIO_PIN_1
@@ -71,6 +82,16 @@ void Error_Handler(void);
 #define ROW2_GPIO_Port GPIOB
 #define ROW1_Pin GPIO_PIN_15
 #define ROW1_GPIO_Port GPIOB
+#define BUZZER_Pin GPIO_PIN_10
+#define BUZZER_GPIO_Port GPIOA
+#define HEATING_LED_Pin GPIO_PIN_11
+#define HEATING_LED_GPIO_Port GPIOA
+#define REGULATION_LED_Pin GPIO_PIN_12
+#define REGULATION_LED_GPIO_Port GPIOA
+#define FAN_Pin GPIO_PIN_4
+#define FAN_GPIO_Port GPIOB
+#define HEAT_Pin GPIO_PIN_5
+#define HEAT_GPIO_Port GPIOB
 #define LCD_SCL_Pin GPIO_PIN_6
 #define LCD_SCL_GPIO_Port GPIOB
 #define LCD_SDA_Pin GPIO_PIN_7
