@@ -392,7 +392,7 @@ static void MX_GPIO_Init(void)
                           |FAN_Pin|HEAT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, BUZZER_Pin|HEATING_LED_Pin|REGULATION_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, BUZZER_Pin|HEATING_LED_Pin|REGULATION_LED_Pin|SETTINGS_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : ENC3_BUTTON_Pin ENC1_BUTTON_Pin */
   GPIO_InitStruct.Pin = ENC3_BUTTON_Pin|ENC1_BUTTON_Pin;
@@ -433,8 +433,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BUZZER_Pin HEATING_LED_Pin REGULATION_LED_Pin */
-  GPIO_InitStruct.Pin = BUZZER_Pin|HEATING_LED_Pin|REGULATION_LED_Pin;
+  /*Configure GPIO pins : BUZZER_Pin HEATING_LED_Pin REGULATION_LED_Pin SETTINGS_LED_Pin */
+  GPIO_InitStruct.Pin = BUZZER_Pin|HEATING_LED_Pin|REGULATION_LED_Pin|SETTINGS_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -452,7 +452,14 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+// Callback for GPIO interrupts
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == RESET_Pin)
+    {
+        NVIC_SystemReset(); // Reset the system
+    }
+}
 /* USER CODE END 4 */
 
 /**

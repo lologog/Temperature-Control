@@ -19,5 +19,5 @@ void RegulatorMachine_Init(void)
 
 void RegulatorMachine_Run(void)
 {
-
+	HAL_GPIO_WritePin(SETTINGS_LED_GPIO_Port, SETTINGS_LED_Pin, 1);
 }

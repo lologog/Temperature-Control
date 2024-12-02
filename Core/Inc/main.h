@@ -88,6 +88,8 @@ void Error_Handler(void);
 #define HEATING_LED_GPIO_Port GPIOA
 #define REGULATION_LED_Pin GPIO_PIN_12
 #define REGULATION_LED_GPIO_Port GPIOA
+#define SETTINGS_LED_Pin GPIO_PIN_15
+#define SETTINGS_LED_GPIO_Port GPIOA
 #define FAN_Pin GPIO_PIN_4
 #define FAN_GPIO_Port GPIOB
 #define HEAT_Pin GPIO_PIN_5
