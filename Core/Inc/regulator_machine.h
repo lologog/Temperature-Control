@@ -2,7 +2,7 @@
  * regulator_machine.h
  *
  *  Created on: Nov 30, 2024
- *      Author: admin
+ *      Author: Krzysztof Tomicki
  */
 
 #ifndef REGULATOR_MACHINE_H
@@ -11,6 +11,7 @@
 //here are gonna be all includes
 #include "i2c-lcd.h"
 #include "BMPXX80.h"
+#include "keyboard.h"
 
 //states of the machine
 typedef enum{

@@ -10,6 +10,8 @@
 //global state of the machine
 static RegualatorMachineState currentState = INITIAL;
 
+char pressedKey;
+
 void RegulatorMachine_Init(void)
 {
 	lcd_init();
