@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "BMPXX80.h"
 #include "i2c-lcd.h"
+#include "keyboard.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -101,7 +102,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  RegulatorMachine_Run();
+	RegulatorMachine_Run();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
