@@ -19,13 +19,16 @@
 //states of the machine
 typedef enum{
 	INITIAL_STATE,
-	REGULATION_TYPE_STATE
+	REGULATION_TYPE_STATE,
+	BANG_BANG_STATE,
+	PID_STATE
 } RegualatorMachineState;
 
 void RegulatorMachine_Init(void); //initial funcion of the machine - need to be used only once
 void RegulatorMachine_Run(void); //state machine function - put in loop function
 
 //states of the machine
-static void HandleInitialState(void);
+static void HandleInitialState(void); //first state when you turn on the machine
+static void HandleRegulationTypeState(void); //state after clicking start, you can choose your regulation type here
 
 #endif /* REGULATOR_MACHINE_H */

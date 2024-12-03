@@ -9,6 +9,7 @@
 
 //global state of the machine
 static RegualatorMachineState currentState = INITIAL_STATE;
+static RegualatorMachineState previousState = INITIAL_STATE;
 
 void RegulatorMachine_Init(void)
 {
@@ -20,10 +21,20 @@ void RegulatorMachine_Init(void)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 void RegulatorMachine_Run(void)
 {
+	//clear the screen after every state change
+	if (currentState != previousState)
+	{
+		lcd_clear();
+		previousState = currentState;
+	}
+
 	switch (currentState)
 	{
 		case INITIAL_STATE:
 			HandleInitialState();
+			break;
+		case REGULATION_TYPE_STATE:
+			HandleRegulationTypeState();
 			break;
 	}
 }
@@ -66,5 +77,33 @@ static void HandleInitialState(void)
 		currentState = REGULATION_TYPE_STATE;
 	}
 }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void HandleRegulationTypeState(void)
+{
+	static char pressedKey = '\0';
+	// settings leds on the board
+	HAL_GPIO_WritePin(SETTINGS_LED_GPIO_Port, SETTINGS_LED_Pin, 1);
+	HAL_GPIO_WritePin(REGULATION_LED_GPIO_Port, REGULATION_LED_Pin, 0);
+	HAL_GPIO_WritePin(HEATING_LED_GPIO_Port, HEATING_LED_Pin, 0);
+
+	//text with users regulation types to click
+	lcd_put_cur(0, 0);
+	lcd_send_string("1-BANG BANG CONT");
+	lcd_put_cur(1, 0);
+	lcd_send_string("2-PID CONT");
+
+	//choosing regulation type on keyboard
+	pressedKey = Keyboard_readKey();
+	if (pressedKey == '1')
+	{
+		currentState = BANG_BANG_STATE;
+	}
+	else if (pressedKey == '2')
+	{
+		currentState = PID_STATE;
+	}
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
