@@ -44,6 +44,9 @@ void RegulatorMachine_Run(void)
 		case BANG_BANG_REGULATION_STATE:
 			HandleBangBangRegulationState();
 			break;
+		case END_STATE:
+			HandleEndState();
+			break;
 	}
 }
 
@@ -93,6 +96,7 @@ static void HandleRegulationTypeState(void)
 	HAL_GPIO_WritePin(SETTINGS_LED_GPIO_Port, SETTINGS_LED_Pin, 1);
 	HAL_GPIO_WritePin(REGULATION_LED_GPIO_Port, REGULATION_LED_Pin, 0);
 	HAL_GPIO_WritePin(HEATING_LED_GPIO_Port, HEATING_LED_Pin, 0);
+	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, 0);
 
 	//text with users regulation types to click
 	lcd_put_cur(0, 0);
@@ -165,6 +169,7 @@ static void HandleBangBangState(void)
 		finalTemperature = atof(writtenTemperature);
 		memset(writtenTemperature, 0, strlen(writtenTemperature)); //clear the table
 		currentState = BANG_BANG_REGULATION_STATE;
+		delayStarted = false;
 	}
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -173,9 +178,9 @@ static void HandleBangBangRegulationState(void)
 	static bool targetReached = false;
 	static float temperature = 0;
 	static uint32_t pressure = 0;
-	static float tolerance = 0.2;
+	static float tolerance = 0.1;
 	static uint32_t timeReached = 0.0;
-	static uint32_t regulationTimeLimit = 0.0;
+	static uint32_t regulationTimeLimit = 30000;
 
 	HAL_GPIO_WritePin(REGULATION_LED_GPIO_Port, REGULATION_LED_Pin, 1);
 	HAL_GPIO_WritePin(SETTINGS_LED_GPIO_Port, SETTINGS_LED_Pin, 0);
@@ -223,7 +228,55 @@ static void HandleBangBangRegulationState(void)
 	if (targetReached && (HAL_GetTick() - timeReached >= regulationTimeLimit))
 	{
 		targetReached = false;
-		//currentState = NEXT_STATE;
+		currentState = END_STATE;
+	}
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void HandleEndState(void)
+{
+	static uint32_t lastBuzzerToggleTime = 0;
+	static uint32_t lastTextToggleime = 0;
+	static uint32_t buzzerInterval = 500;
+	static bool buzzerState = false;
+	static bool showClickStart = true;
+
+	HAL_GPIO_WritePin(HEATING_LED_GPIO_Port, HEATING_LED_Pin, 0);
+	HAL_GPIO_WritePin(REGULATION_LED_GPIO_Port, REGULATION_LED_Pin, 0);
+	HAL_GPIO_WritePin(HEAT_GPIO_Port, HEAT_Pin, 0);
+	HAL_GPIO_WritePin(FAN_GPIO_Port, FAN_Pin, 0);
+
+	// beeping logic
+	if (HAL_GetTick() - lastBuzzerToggleTime >= buzzerInterval)
+	{
+		lastBuzzerToggleTime = HAL_GetTick();
+		buzzerState = !buzzerState;
+		HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, buzzerState ? 1 : 0);
+	}
+
+	// blinking "CLICK START" text
+	if (HAL_GetTick() - lastTextToggleime >= 1000)
+	{
+		lcd_put_cur(0, 4);
+		lcd_send_string("SUCCESS");
+		lcd_put_cur(1, 2);
+
+		if (showClickStart)
+		{
+			lcd_send_string("CLICK START");
+		}
+		else
+		{
+			lcd_send_string("             ");
+		}
+
+		lastTextToggleime = HAL_GetTick();
+		showClickStart = !showClickStart;
+	}
+
+	//changing the state
+	if (HAL_GPIO_ReadPin(START_STOP_GPIO_Port, START_STOP_Pin) == 1)
+	{
+		currentState = REGULATION_TYPE_STATE;
 	}
 }
 
