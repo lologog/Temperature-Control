@@ -47,6 +47,8 @@ void RegulatorMachine_Run(void)
 		case END_STATE:
 			HandleEndState();
 			break;
+		default:
+			currentState = REGULATION_TYPE_STATE;
 	}
 }
 
