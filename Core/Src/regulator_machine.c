@@ -114,7 +114,7 @@ static void HandleRegulationTypeState(void)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 static void HandleBangBangState(void)
 {
-	static char writtenTemperature[5] = {0};
+	static char writtenTemperature[6] = {0};
 	static uint8_t length = 0;
 	static bool delayStarted = false;
 	static uint32_t enterTime = 0;
@@ -170,6 +170,60 @@ static void HandleBangBangState(void)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 static void HandleBangBangRegulationState(void)
 {
+	static bool targetReached = false;
+	static float temperature = 0;
+	static uint32_t pressure = 0;
+	static float tolerance = 0.2;
+	static uint32_t timeReached = 0.0;
+	static uint32_t regulationTimeLimit = 0.0;
 
+	HAL_GPIO_WritePin(REGULATION_LED_GPIO_Port, REGULATION_LED_Pin, 1);
+	HAL_GPIO_WritePin(SETTINGS_LED_GPIO_Port, SETTINGS_LED_Pin, 0);
+
+	BMP280_ReadTemperatureAndPressure(&temperature, &pressure);
+	static char buffer1[16];
+	static char buffer2[16];
+
+	//changing table of chars into float and putting it on the screen
+	sprintf(buffer1, "%.2f", finalTemperature);
+	lcd_put_cur(0, 0);
+	lcd_send_string("SETPOINT    ");
+	lcd_put_cur(0, 11);
+	lcd_send_string(buffer1);
+
+	//measured temperature
+	sprintf(buffer2, "%.2f", temperature);
+	lcd_put_cur(1, 0);
+	lcd_send_string("ACTUAL  ");
+	lcd_put_cur(1, 11);
+	lcd_send_string(buffer2);
+
+	//bang bang regulation
+	if (temperature <= finalTemperature - tolerance)
+	{
+		HAL_GPIO_WritePin(HEAT_GPIO_Port, HEAT_Pin, 1);
+		HAL_GPIO_WritePin(HEATING_LED_GPIO_Port, HEATING_LED_Pin, 1);
+		HAL_GPIO_WritePin(FAN_GPIO_Port, FAN_Pin, 0);
+	}
+	else if (temperature >= finalTemperature + tolerance)
+	{
+		HAL_GPIO_WritePin(HEAT_GPIO_Port, HEAT_Pin, 0);
+		HAL_GPIO_WritePin(HEATING_LED_GPIO_Port, HEATING_LED_Pin, 0);
+		HAL_GPIO_WritePin(FAN_GPIO_Port, FAN_Pin, 1);
+	}
+	else
+	{
+		if (!targetReached)
+		{
+			targetReached = true;
+			timeReached = HAL_GetTick();
+		}
+	}
+
+	if (targetReached && (HAL_GetTick() - timeReached >= regulationTimeLimit))
+	{
+		targetReached = false;
+		//currentState = NEXT_STATE;
+	}
 }
 
