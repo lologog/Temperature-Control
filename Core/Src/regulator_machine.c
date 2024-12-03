@@ -11,6 +11,8 @@
 static RegualatorMachineState currentState = INITIAL_STATE;
 static RegualatorMachineState previousState = INITIAL_STATE;
 
+static float finalTemperature = 0;
+
 void RegulatorMachine_Init(void)
 {
 	lcd_init();
@@ -35,6 +37,12 @@ void RegulatorMachine_Run(void)
 			break;
 		case REGULATION_TYPE_STATE:
 			HandleRegulationTypeState();
+			break;
+		case BANG_BANG_STATE:
+			HandleBangBangState();
+			break;
+		case BANG_BANG_REGULATION_STATE:
+			HandleBangBangRegulationState();
 			break;
 	}
 }
@@ -104,6 +112,64 @@ static void HandleRegulationTypeState(void)
 	}
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void HandleBangBangState(void)
+{
+	static char writtenTemperature[5] = {0};
+	static uint8_t length = 0;
+	static bool delayStarted = false;
+	static uint32_t enterTime = 0;
+	static bool keyReleased = true;
 
+	lcd_put_cur(0, 0);
+	lcd_send_string("CHOOSE TEMP");
 
+	//one time delay to not get the 1 from the previous state
+	if (!delayStarted)
+	{
+		enterTime = HAL_GetTick();
+		delayStarted = true;
+	}
+
+	if (HAL_GetTick() - enterTime >= 500)
+	{
+		//read the clicked number
+		char currentKey = Keyboard_readKey();
+
+		//checking if the key is released
+		if (currentKey == '\0')
+		{
+			keyReleased = true;
+		}
+
+		// if the key was pressed and released
+		if (currentKey != '\0' && keyReleased)
+		{
+			keyReleased = false;
+
+			length = strlen(writtenTemperature);
+			//checing if there is still place in the table
+			if (length < sizeof(writtenTemperature) - 1)
+			{
+				writtenTemperature[length] = currentKey;
+				writtenTemperature[length+1] = '\0';
+			}
+		}
+	}
+
+	lcd_put_cur(1, 0);
+	lcd_send_string(writtenTemperature);
+
+	//accepting written temperature
+	if (HAL_GPIO_ReadPin(START_STOP_GPIO_Port, START_STOP_Pin) == 1)
+	{
+		finalTemperature = atof(writtenTemperature);
+		memset(writtenTemperature, 0, strlen(writtenTemperature)); //clear the table
+		currentState = BANG_BANG_REGULATION_STATE;
+	}
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void HandleBangBangRegulationState(void)
+{
+
+}
 
