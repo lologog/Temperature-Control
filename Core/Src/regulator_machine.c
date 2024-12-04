@@ -456,6 +456,9 @@ static void HandlePIDRegulationState(void)
     static float lastError = 0.0; //previous error variable
     static float integral = 0.0;  //accumulated integral of the error
     static uint32_t lastTime = 0;  //last time update
+    static uint32_t toleranceStartTime = 0; //time when regulation entered tolerance
+    static bool inTolerance = false; //is regulation within tolerance
+    float tolerance = 0.5;          //tolerance range for temperature regulation
 
     HAL_GPIO_WritePin(REGULATION_LED_GPIO_Port, REGULATION_LED_Pin, 1);
     HAL_GPIO_WritePin(SETTINGS_LED_GPIO_Port, SETTINGS_LED_Pin, 0);
@@ -476,11 +479,11 @@ static void HandlePIDRegulationState(void)
     //display setpoint and current temperature on the LCD
     char buffer[16];
     lcd_put_cur(0, 0);
-    snprintf(buffer, sizeof(buffer), "SP: %.2f", finalTemperature); //final temperature
+    snprintf(buffer, sizeof(buffer), "SP: %.2f", finalTemperature);
     lcd_send_string(buffer);
 
     lcd_put_cur(1, 0);
-    snprintf(buffer, sizeof(buffer), "TEMP: %.2f", temperature); //current temperture
+    snprintf(buffer, sizeof(buffer), "TEMP: %.2f", temperature);
     lcd_send_string(buffer);
 
     //control the heating and cooling system based on control output
@@ -496,4 +499,26 @@ static void HandlePIDRegulationState(void)
         HAL_GPIO_WritePin(FAN_GPIO_Port, FAN_Pin, 1);
         HAL_GPIO_WritePin(HEATING_LED_GPIO_Port, HEATING_LED_Pin, 0);
     }
+
+    //check if the temperature is within tolerance range
+    if (temperature >= finalTemperature - tolerance && temperature <= finalTemperature + tolerance)
+    {
+        if (!inTolerance)
+        {
+            //entering tolerance range
+            inTolerance = true;
+            toleranceStartTime = currentTime;
+        }
+        else if ((currentTime - toleranceStartTime) >= 60000) //60 seconds in milliseconds
+        {
+            //stay in tolerance range for 1 minute, move to next state
+            currentState = END_STATE;
+        }
+    }
+    else
+    {
+        //out of tolerance range, reset the flag
+        inTolerance = false;
+    }
 }
+
