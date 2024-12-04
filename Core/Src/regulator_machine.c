@@ -359,19 +359,19 @@ static void HandlePIDTempState(void)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 static void HandlePIDParameter(const char *label, float *globalParam, uint8_t encoderNumber, RegualatorMachineState nextState)
 {
-    static float lastValue = -1.0f; // last parameter value - not 0 cuz someone can set 0.0
+    static float lastValue = -1.0; // last parameter value - not 0 cuz someone can set 0.0
     static bool startReleased = false;
     char buffer[16];
 
     //get encoder value and set it from int to float 1->0.1
     int16_t rawValue = Encoder_GetPosition(encoderNumber);
-    float value = rawValue / 10.0f;
+    float value = rawValue / 10.0;
 
     //parameter cannot be negative
     if (rawValue < 0)
     {
         Encoder_ResetPosition(encoderNumber);
-        value = 0.0f;
+        value = 0.0;
     }
 
     // reset screen if value is different
@@ -421,26 +421,74 @@ static void HandlePIDKDState(void)
     HandlePIDParameter("Kd", &globalKd, 1, PID_REGULATION_STATE);
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+//function to calculate the PID control output - THE HARD PART
+float PID_Regulation(float setpoint, float measuredValue, float* lastError, float* integral, float dt)
+{
+    //calculate error
+    float error = setpoint - measuredValue;
+
+    //calculate proportional term
+    float proportional = globalKp * error;
+
+    //calculate integral term
+    *integral += error * dt;
+    float integralTerm = globalKi * (*integral);
+
+    //calculate derivative term
+    float derivative = (error - *lastError) / dt;
+    float derivativeTerm = globalKd * derivative;
+
+    //update last error
+    *lastError = error;
+
+    //compute control output
+    float controlOutput = proportional + integralTerm + derivativeTerm;
+
+    // Limit control output to range 0-100
+    if (controlOutput > 100.0) controlOutput = 100.0;
+    if (controlOutput < 0.0) controlOutput = 0.0;
+
+    return controlOutput;
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 static void HandlePIDRegulationState(void)
 {
-	//...
+    static float lastError = 0.0; //previous error variable
+    static float integral = 0.0;  //accumulated integral of the error
+    static uint32_t lastTime = 0;  //last time update
+
+    //read current temperature and pressure
+    float temperature = 0.0;
+    uint32_t pressure = 0;
+    BMP280_ReadTemperatureAndPressure(&temperature, &pressure);
+
+    //delta t: (t1 - t0) = delta
+    uint32_t currentTime = HAL_GetTick();
+    float dt = (currentTime - lastTime) / 1000.0; //+ convert milliseconds to seconds
+    lastTime = currentTime;
+
+    //main PID algorithm
+    float controlOutput = PID_Regulation(finalTemperature, temperature, &lastError, &integral, dt);
+
+    //display setpoint and current temperature on the LCD
+    char buffer[16];
+    lcd_put_cur(0, 0);
+    snprintf(buffer, sizeof(buffer), "SP: %.2f", finalTemperature); //final temperature
+    lcd_send_string(buffer);
+
+    lcd_put_cur(1, 0);
+    snprintf(buffer, sizeof(buffer), "TEMP: %.2f", temperature); //current temperture
+    lcd_send_string(buffer);
+
+    //control the heating and cooling system based on control output
+    if (controlOutput > 50.0) //threshold for activating the heating system cuz there is a hardware issue with PWM singal for fan and heat
+    {
+        HAL_GPIO_WritePin(HEAT_GPIO_Port, HEAT_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(FAN_GPIO_Port, FAN_Pin, GPIO_PIN_RESET);
+    }
+    else
+    {
+        HAL_GPIO_WritePin(HEAT_GPIO_Port, HEAT_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(FAN_GPIO_Port, FAN_Pin, GPIO_PIN_SET);
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
