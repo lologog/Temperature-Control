@@ -392,13 +392,13 @@ static void HandlePIDParameter(const char *label, float *globalParam, uint8_t en
     }
 
     //user has to unpush the button
-    if (HAL_GPIO_ReadPin(START_STOP_GPIO_Port, START_STOP_Pin) == GPIO_PIN_RESET)
+    if (HAL_GPIO_ReadPin(START_STOP_GPIO_Port, START_STOP_Pin) == 0)
     {
         startReleased = true;
     }
 
     //if the button was released and then clicked again go to next state
-    if (startReleased && HAL_GPIO_ReadPin(START_STOP_GPIO_Port, START_STOP_Pin) == GPIO_PIN_SET)
+    if (startReleased && HAL_GPIO_ReadPin(START_STOP_GPIO_Port, START_STOP_Pin) == 1)
     {
         *globalParam = value; //write the value as global value for parameter
         currentState = nextState;
@@ -457,6 +457,9 @@ static void HandlePIDRegulationState(void)
     static float integral = 0.0;  //accumulated integral of the error
     static uint32_t lastTime = 0;  //last time update
 
+    HAL_GPIO_WritePin(REGULATION_LED_GPIO_Port, REGULATION_LED_Pin, 1);
+    HAL_GPIO_WritePin(SETTINGS_LED_GPIO_Port, SETTINGS_LED_Pin, 0);
+
     //read current temperature and pressure
     float temperature = 0.0;
     uint32_t pressure = 0;
@@ -483,12 +486,14 @@ static void HandlePIDRegulationState(void)
     //control the heating and cooling system based on control output
     if (controlOutput > 50.0) //threshold for activating the heating system cuz there is a hardware issue with PWM singal for fan and heat
     {
-        HAL_GPIO_WritePin(HEAT_GPIO_Port, HEAT_Pin, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(FAN_GPIO_Port, FAN_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(HEAT_GPIO_Port, HEAT_Pin, 1);
+        HAL_GPIO_WritePin(FAN_GPIO_Port, FAN_Pin, 0);
+        HAL_GPIO_WritePin(HEATING_LED_GPIO_Port, HEATING_LED_Pin, 1);
     }
     else
     {
-        HAL_GPIO_WritePin(HEAT_GPIO_Port, HEAT_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(FAN_GPIO_Port, FAN_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(HEAT_GPIO_Port, HEAT_Pin, 0);
+        HAL_GPIO_WritePin(FAN_GPIO_Port, FAN_Pin, 1);
+        HAL_GPIO_WritePin(HEATING_LED_GPIO_Port, HEATING_LED_Pin, 0);
     }
 }
