@@ -23,7 +23,10 @@ typedef enum{
 	REGULATION_TYPE_STATE,
 	BANG_BANG_STATE,
 	PID_TEMP_STATE,
-	PID_PARAMS_STATE,
+	PID_KP_STATE,
+	PID_KI_STATE,
+	PID_KD_STATE,
+	PID_REGULATION_STATE,
 	BANG_BANG_REGULATION_STATE,
 	END_STATE
 } RegualatorMachineState;
@@ -38,6 +41,9 @@ static void HandleBangBangState(void); // here user can choose the temperature t
 static void HandleBangBangRegulationState(void); // final Bang Bang regulation
 static void HandleEndState(void); // the screen after regulation
 static void HandlePIDTempState(void); // here user can choose temperature for PID regulation
-static void HandlePIDParamsState(void); // here user can choose Kp, Ti and Td for the PID regulation
+static void HandlePIDKPState(void); // here user can choose Kp for the PID regulation
+static void HandlePIDKIState(void);
+static void HandlePIDKDState(void);
+static void HandlePIDRegulationState(void); //actual PID regulation
 
 #endif /* REGULATOR_MACHINE_H */

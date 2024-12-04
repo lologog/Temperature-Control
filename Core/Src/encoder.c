@@ -49,3 +49,26 @@ uint8_t Encoder_GetButtonState(uint8_t encoderNumber)
             return 0;
     }
 }
+
+void Encoder_ResetPosition(uint8_t encoderNumber)
+{
+	switch (encoderNumber)
+	{
+		case 1:
+			__HAL_TIM_SET_COUNTER(&htim1, 0);
+			break;
+		case 2:
+			__HAL_TIM_SET_COUNTER(&htim2, 0);
+			break;
+		case 3:
+			__HAL_TIM_SET_COUNTER(&htim1, 0);
+			break;
+		default:
+			break;
+	}
+}
+
+
+
+
+

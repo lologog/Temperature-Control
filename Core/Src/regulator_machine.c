@@ -12,6 +12,9 @@ static RegualatorMachineState currentState = INITIAL_STATE;
 static RegualatorMachineState previousState = INITIAL_STATE;
 
 static float finalTemperature = 0;
+static float globalKp = 0.0;
+static float globalKi = 0.0;
+static float globalKd = 0.0;
 
 void RegulatorMachine_Init(void)
 {
@@ -50,8 +53,17 @@ void RegulatorMachine_Run(void)
 		case PID_TEMP_STATE:
 			HandlePIDTempState();
 			break;
-		case PID_PARAMS_STATE:
-			HandlePIDParamsState();
+		case PID_KP_STATE:
+			HandlePIDKPState();
+			break;
+		case PID_KI_STATE:
+			HandlePIDKIState();
+			break;
+		case PID_KD_STATE:
+			HandlePIDKDState();
+			break;
+		case PID_REGULATION_STATE:
+			HandlePIDRegulationState();
 			break;
 		default:
 			currentState = REGULATION_TYPE_STATE;
@@ -340,15 +352,94 @@ static void HandlePIDTempState(void)
 	{
 		finalTemperature = atof(writtenTemperature);
 		memset(writtenTemperature, 0, strlen(writtenTemperature)); //clear the table
-		currentState = PID_PARAMS_STATE;
+		currentState = PID_KP_STATE;
 		delayStarted = false;
 	}
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void HandlePIDParamsState(void)
+static void HandlePIDParameter(const char *label, float *globalParam, uint8_t encoderNumber, RegualatorMachineState nextState)
 {
-	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, 1);
+    static float lastValue = -1.0f; // last parameter value - not 0 cuz someone can set 0.0
+    static bool startReleased = false;
+    char buffer[16];
+
+    //get encoder value and set it from int to float 1->0.1
+    int16_t rawValue = Encoder_GetPosition(encoderNumber);
+    float value = rawValue / 10.0f;
+
+    //parameter cannot be negative
+    if (rawValue < 0)
+    {
+        Encoder_ResetPosition(encoderNumber);
+        value = 0.0f;
+    }
+
+    // reset screen if value is different
+    if (value != lastValue)
+    {
+        lcd_put_cur(0, 0);
+        lcd_send_string("CHOOSE ");
+        lcd_send_string(label);
+
+        lcd_put_cur(1, 0);
+        lcd_send_string("                ");
+
+        snprintf(buffer, sizeof(buffer), "%s: %.1f", label, value);
+        lcd_put_cur(1, 0);
+        lcd_send_string(buffer);
+
+        lastValue = value;
+    }
+
+    //user has to unpush the button
+    if (HAL_GPIO_ReadPin(START_STOP_GPIO_Port, START_STOP_Pin) == GPIO_PIN_RESET)
+    {
+        startReleased = true;
+    }
+
+    //if the button was released and then clicked again go to next state
+    if (startReleased && HAL_GPIO_ReadPin(START_STOP_GPIO_Port, START_STOP_Pin) == GPIO_PIN_SET)
+    {
+        *globalParam = value; //write the value as global value for parameter
+        currentState = nextState;
+        startReleased = false;
+    }
 }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void HandlePIDKPState(void)
+{
+    HandlePIDParameter("Kp", &globalKp, 2, PID_KI_STATE);
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void HandlePIDKIState(void)
+{
+    HandlePIDParameter("Ki", &globalKi, 3, PID_KD_STATE);
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void HandlePIDKDState(void)
+{
+    HandlePIDParameter("Kd", &globalKd, 1, PID_REGULATION_STATE);
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void HandlePIDRegulationState(void)
+{
+	//...
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

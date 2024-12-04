@@ -13,5 +13,6 @@
 void Encoder_Init(void);
 int16_t Encoder_GetPosition(uint8_t encoderNumber);
 uint8_t Encoder_GetButtonState(uint8_t encoderNumber); // New function to read button states
+void Encoder_ResetPosition(uint8_t encoderNumber);
 
 #endif // ENCODER_H
