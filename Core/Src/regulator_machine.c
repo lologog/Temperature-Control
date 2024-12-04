@@ -47,6 +47,12 @@ void RegulatorMachine_Run(void)
 		case END_STATE:
 			HandleEndState();
 			break;
+		case PID_TEMP_STATE:
+			HandlePIDTempState();
+			break;
+		case PID_PARAMS_STATE:
+			HandlePIDParamsState();
+			break;
 		default:
 			currentState = REGULATION_TYPE_STATE;
 	}
@@ -114,7 +120,7 @@ static void HandleRegulationTypeState(void)
 	}
 	else if (pressedKey == '2')
 	{
-		currentState = PID_STATE;
+		currentState = PID_TEMP_STATE;
 	}
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,4 +287,69 @@ static void HandleEndState(void)
 		currentState = REGULATION_TYPE_STATE;
 	}
 }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void HandlePIDTempState(void)
+{
+	static char writtenTemperature[6] = {0};
+	static uint8_t length = 0;
+	static bool delayStarted = false;
+	static uint32_t enterTime = 0;
+	static bool keyReleased = true;
+
+	lcd_put_cur(0, 0);
+	lcd_send_string("CHOOSE TEMP");
+
+	//one time delay to not get the 1 from the previous state
+	if (!delayStarted)
+	{
+		enterTime = HAL_GetTick();
+		delayStarted = true;
+	}
+
+	if (HAL_GetTick() - enterTime >= 500)
+	{
+		//read the clicked number
+		char currentKey = Keyboard_readKey();
+
+		//checking if the key is released
+		if (currentKey == '\0')
+		{
+			keyReleased = true;
+		}
+
+		// if the key was pressed and released
+		if (currentKey != '\0' && keyReleased)
+		{
+			keyReleased = false;
+
+			length = strlen(writtenTemperature);
+			//checing if there is still place in the table
+			if (length < sizeof(writtenTemperature) - 1)
+			{
+				writtenTemperature[length] = currentKey;
+				writtenTemperature[length+1] = '\0';
+			}
+		}
+	}
+
+	lcd_put_cur(1, 0);
+	lcd_send_string(writtenTemperature);
+
+	//accepting written temperature
+	if (HAL_GPIO_ReadPin(START_STOP_GPIO_Port, START_STOP_Pin) == 1)
+	{
+		finalTemperature = atof(writtenTemperature);
+		memset(writtenTemperature, 0, strlen(writtenTemperature)); //clear the table
+		currentState = PID_PARAMS_STATE;
+		delayStarted = false;
+	}
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void HandlePIDParamsState(void)
+{
+	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, 1);
+}
+
+
+
 

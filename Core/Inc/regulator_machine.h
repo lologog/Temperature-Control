@@ -22,7 +22,8 @@ typedef enum{
 	INITIAL_STATE,
 	REGULATION_TYPE_STATE,
 	BANG_BANG_STATE,
-	PID_STATE,
+	PID_TEMP_STATE,
+	PID_PARAMS_STATE,
 	BANG_BANG_REGULATION_STATE,
 	END_STATE
 } RegualatorMachineState;
@@ -36,5 +37,7 @@ static void HandleRegulationTypeState(void); //state after clicking start, you c
 static void HandleBangBangState(void); // here user can choose the temperature that he wants to test
 static void HandleBangBangRegulationState(void); // final Bang Bang regulation
 static void HandleEndState(void); // the screen after regulation
+static void HandlePIDTempState(void); // here user can choose temperature for PID regulation
+static void HandlePIDParamsState(void); // here user can choose Kp, Ti and Td for the PID regulation
 
 #endif /* REGULATOR_MACHINE_H */
